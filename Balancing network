@@ -1,0 +1,41 @@
+[# Use NetworkX graphic package and Python's random library to create a randomly signed network
+import networkx as nx
+import random
+# Create a K4 complete graph (default node labels are indexical from 0)
+G = nx.complete_graph(4)
+# Randomly assign +1 or -1 relationship signs to all edges. Rename node 0 to Alice, 1 to Bob, etc
+G.add_edges_from([(u, v, {'sign': 2*random.randint(0, 1)-1}) for u, v in G.edges])
+nx.relabel_nodes(G, {0: 'Alice', 1: 'Bob', 2: 'Eve', 3: 'Wally'}, copy=False)
+
+# Print the relationships assigned by the current code execution
+print('Friendly relationships: ', [(x, y) for (x, y, sign) in G.edges(data='sign') if (sign == 1)])
+print('Hostile relationships: ', [(x, y) for (x, y, sign) in G.edges(data='sign') if (sign == -1)])]
+
+[# To see helper functions, select Jupyter File Explorer View from the Online Learning page
+from helpers.solvers import default_solver
+my_solver, my_token = default_solver()]
+
+[# Select a D-Wave system and handle mapping from problem graph to sampler graph
+from dwave.system.samplers import DWaveSampler
+from dwave.system.composites import EmbeddingComposite
+
+sampler = EmbeddingComposite(DWaveSampler(solver={'qpu': True}))  # Some accounts need to replace this line with the next:
+# sampler = EmbeddingComposite(DWaveSampler(solver='paste missing solver name here', token='paste missing API token here'))]
+
+[# Return a good partition (minimal structural imbalance) and its frustrated edges  
+import dwave_networkx as dnx
+imbalance, bicoloring = dnx.structural_imbalance(G, sampler)
+
+# Mark the returned frustrated edges and node set (color) on the graph 
+for edge in G.edges:
+    G.edges[edge]['frustrated'] = edge in imbalance
+for node in G.nodes:
+    G.nodes[node]['color'] = bicoloring[node]
+
+# Print the relationships for the returned partition
+print('Yellow set: ', [person for (person, color) in bicoloring.items() if (color == 0)])
+print('Blue set: ', [person for (person, color) in bicoloring.items() if (color == 1)])
+print('\nFrustrated relationships: ', list(imbalance.keys()))]
+
+[from helpers.draw import draw
+draw(G, with_labels=True);]
